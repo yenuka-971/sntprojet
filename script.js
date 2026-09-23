@@ -2,11 +2,9 @@
    SNT PROJECTS (PVT) LTD - STANDALONE JAVASCRIPT
    Supervised by Eng. H.K.S. Dahampriya
    Managing Director & Lead Power Systems Engineer
-   AMIE(SL), B.Sc. Eng (Hons) Electrical & Information
    Pure Vanilla JavaScript with Zero External Dependencies
    ======================================================== */
 
-// Default Configuration & Data matching Official SNT Projects Profile
 const DEFAULT_COMPANY_CONFIG = {
   name: "SNT Projects (Pvt) Ltd",
   leadEngineer: "Eng. H.K.S. Dahampriya",
@@ -110,7 +108,6 @@ const DEFAULT_COMPANY_CONFIG = {
   }
 };
 
-// Initial Seed Inquiries
 const DEFAULT_INQUIRIES = [
   {
     id: "INQ-94821",
@@ -134,7 +131,6 @@ const DEFAULT_INQUIRIES = [
   }
 ];
 
-// Runtime State
 let siteConfig = JSON.parse(JSON.stringify(DEFAULT_COMPANY_CONFIG));
 let currentTariff = 'domestic';
 let currentBill = 45000;
@@ -142,7 +138,6 @@ let currentFaultFilter = 'all';
 let inquiryFilterStatus = 'all';
 let inquirySearchQuery = '';
 
-// Diagnostic Fault Codes Knowledge Base
 const FAULT_CODES_DB = [
   {
     code: "F09 / E04",
@@ -225,7 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initAiAssistant();
   updateInquiryCountBadge();
 
-  // Smooth hash navigation for internal links
+  const yearEl = document.getElementById('currentYear');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
       const targetId = this.getAttribute('href');
@@ -260,7 +257,6 @@ function loadStoredConfig() {
       };
     }
 
-    // Initialize inquiries if empty
     if (!localStorage.getItem('snt_inquiries')) {
       localStorage.setItem('snt_inquiries', JSON.stringify(DEFAULT_INQUIRIES));
     }
@@ -270,7 +266,11 @@ function loadStoredConfig() {
 }
 
 function saveConfigToStorage() {
-  localStorage.setItem('snt_site_config', JSON.stringify(siteConfig));
+  try {
+    localStorage.setItem('snt_site_config', JSON.stringify(siteConfig));
+  } catch (e) {
+    console.warn("Unable to save config", e);
+  }
   hydrateSiteConfig();
 }
 
@@ -279,7 +279,7 @@ function hydrateSiteConfig() {
   const telLink = `tel:${siteConfig.phone.replace(/[\s-]/g, '')}`;
   const waUrl = siteConfig.whatsappUrl || `https://wa.me/${cleanPhone}`;
 
-  // 1. Top Bar
+  // Top Bar
   setText('topAddress', siteConfig.address);
   setText('topEmail', siteConfig.email);
   setText('topLeadEngineer', siteConfig.leadEngineer);
@@ -287,7 +287,7 @@ function hydrateSiteConfig() {
   setHref('topPhoneLink', telLink);
   setHref('topEmailLink', `mailto:${siteConfig.email}`);
 
-  // 2. Navigation
+  // Navigation
   setText('navPhone', siteConfig.phone);
   setHref('navPhoneLink', telLink);
   setHref('navWhatsAppLink', waUrl);
@@ -296,7 +296,7 @@ function hydrateSiteConfig() {
   setText('mobileDrawerTitle', siteConfig.name);
   setText('mobileDrawerAddress', siteConfig.address);
 
-  // 3. Hero Section
+  // Hero
   if (siteConfig.hero) {
     setText('heroKicker', siteConfig.hero.kicker);
     setText('heroHeadline', siteConfig.hero.headline);
@@ -305,18 +305,18 @@ function hydrateSiteConfig() {
     setText('heroUptimeStat', siteConfig.hero.uptimeStat);
     setText('heroUptimeSubtext', siteConfig.hero.uptimeSubtext);
 
-    const guaranteeList = document.getElementById('heroGuaranteeList');
+    const guaranteeList = document.getElementById('heroGuaranteePoints');
     if (guaranteeList && siteConfig.hero.guaranteePoints) {
       guaranteeList.innerHTML = siteConfig.hero.guaranteePoints.map(pt => `
-        <div class="guarantee-chip">
-          <svg class="icon text-amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>${pt}</span>
+        <div class="point-item">
+          <svg class="icon tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+          <span>${escapeHtml(pt)}</span>
         </div>
       `).join('');
     }
   }
 
-  // 4. Core Services (1-4)
+  // Services
   if (siteConfig.services && siteConfig.services.length) {
     siteConfig.services.forEach((s, idx) => {
       const i = idx + 1;
@@ -328,36 +328,30 @@ function hydrateSiteConfig() {
       const specsList = document.getElementById(`svcSpecs${i}`);
       if (specsList && s.specs) {
         specsList.innerHTML = s.specs.map(spec => `
-          <li>
-            <svg class="icon text-amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>${spec}</span>
-          </li>
+          <div class="spec-item">
+            <svg class="icon tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>${escapeHtml(spec)}</span>
+          </div>
         `).join('');
       }
     });
   }
 
-  // 5. About Section
+  // About
   if (siteConfig.about) {
     setText('aboutBadge', siteConfig.about.badge);
     setText('aboutHeadline', siteConfig.about.headline);
     setText('aboutBio1', siteConfig.about.bioParagraph1);
     setText('aboutBio2', siteConfig.about.bioParagraph2);
-    setText('aboutStatExp', siteConfig.about.experienceYears);
-    setText('aboutStatProjects', siteConfig.about.completedProjects);
-    setText('aboutStatClients', siteConfig.about.amcClientsCount);
+    setText('aboutExpYears', siteConfig.about.experienceYears);
   }
-  setText('aboutLeadName', siteConfig.leadEngineer);
-  setText('aboutLeadTitle', siteConfig.engineerTitle);
-  setText('aboutLeadCreds', siteConfig.engineerCreds);
   setText('aboutLeadPhone', siteConfig.phone);
   setHref('aboutLeadPhoneLink', telLink);
   setText('aboutLeadAddress', siteConfig.address);
 
-  // 6. Contact Section
+  // Contact
   setText('contactCompanyName', siteConfig.name);
   setText('contactLeadName', siteConfig.leadEngineer);
-  setText('contactLeadTitleAndCreds', `${siteConfig.leadEngineer} (${siteConfig.engineerCreds})`);
   setText('contactAddress', siteConfig.address);
   setText('contactPhone', siteConfig.phone);
   setHref('contactPhoneLink', telLink);
@@ -366,7 +360,7 @@ function hydrateSiteConfig() {
   setText('contactHours', siteConfig.hours);
   setText('contactSla', `24/7 Breakdown Dispatch SLA: ${siteConfig.sla}`);
 
-  // Social Links
+  // Social
   setHref('contactLinkedInLink', siteConfig.linkedIn);
   setHref('contactFacebookLink', siteConfig.facebook);
   setHref('contactWhatsAppBtn', waUrl);
@@ -374,15 +368,16 @@ function hydrateSiteConfig() {
   setHref('footerFacebookLink', siteConfig.facebook);
   setHref('footerWhatsAppLink', waUrl);
   setText('footerWhatsAppText', `WhatsApp: ${siteConfig.phone}`);
-  setText('footerLeadName', siteConfig.leadEngineer);
-  setText('footerLeadCreds', siteConfig.engineerCreds);
+  setText('footerLeadEngineer', siteConfig.leadEngineer);
+  setText('footerEngineerCreds', siteConfig.engineerCreds);
   setText('footerAddress', siteConfig.address);
+  setText('footerCompanyName', siteConfig.name);
 
-  // Floating Buttons
-  setHref('floatingWhatsAppLink', `${waUrl}?text=${encodeURIComponent("Hello Eng. H.K.S. Dahampriya, I would like to inquire about SNT Projects services.")}`);
+  // Floating
+  const floatWa = `${waUrl}?text=${encodeURIComponent("Hello Eng. H.K.S. Dahampriya, I would like to inquire about SNT Projects services.")}`;
+  setHref('floatingWhatsAppLink', floatWa);
   setText('floatingWhatsAppLabel', `Chat: ${siteConfig.phone}`);
 
-  // Populate CMS form fields
   syncCmsInputs();
 }
 
@@ -396,11 +391,7 @@ function setHref(id, url) {
   if (el && url) el.setAttribute('href', url);
 }
 
-/* ========================================================
-   SYNC CMS FORM FIELDS
-   ======================================================== */
 function syncCmsInputs() {
-  // Company Tab
   setVal('editCompanyName', siteConfig.name);
   setVal('editLeadEngineer', siteConfig.leadEngineer);
   setVal('editEngineerTitle', siteConfig.engineerTitle);
@@ -414,7 +405,6 @@ function syncCmsInputs() {
   setVal('editFacebook', siteConfig.facebook);
   setVal('editWhatsAppUrl', siteConfig.whatsappUrl);
 
-  // Hero Tab
   if (siteConfig.hero) {
     setVal('editHeroKicker', siteConfig.hero.kicker);
     setVal('editHeroHeadline', siteConfig.hero.headline);
@@ -430,7 +420,6 @@ function syncCmsInputs() {
     setVal('editHeroUptimeSubtext', siteConfig.hero.uptimeSubtext);
   }
 
-  // Services Tab
   if (siteConfig.services) {
     siteConfig.services.forEach((s, idx) => {
       const i = idx + 1;
@@ -442,13 +431,11 @@ function syncCmsInputs() {
     });
   }
 
-  // Solar Tab
   setVal('editDomesticRate', siteConfig.solarRates.domestic);
   setVal('editCommercialRate', siteConfig.solarRates.commercial);
   setVal('editCostPerKw', siteConfig.solarRates.costPerKw);
   setVal('editSunHours', siteConfig.solarRates.sunHours);
 
-  // About Tab
   if (siteConfig.about) {
     setVal('editAboutBadge', siteConfig.about.badge);
     setVal('editAboutHeadline', siteConfig.about.headline);
@@ -529,8 +516,8 @@ function updateCalculatorResults() {
     billDisplay.textContent = 'Rs. ' + currentBill.toLocaleString();
   }
 
-  const ratePerKwh = currentTariff === 'domestic' 
-    ? siteConfig.solarRates.domestic 
+  const ratePerKwh = currentTariff === 'domestic'
+    ? siteConfig.solarRates.domestic
     : siteConfig.solarRates.commercial;
 
   const monthlyUnits = currentBill / ratePerKwh;
@@ -561,11 +548,10 @@ function updateCalculatorResults() {
 
 function applyCalculatorQuote() {
   const cap = document.getElementById('resCapacity') ? document.getElementById('resCapacity').textContent : '8.1';
-  const sav = document.getElementById('resSavings') ? document.getElementById('resSavings').textContent : 'Rs. 44,900';
 
   const serviceSelect = document.getElementById('inqService');
   if (serviceSelect) {
-    serviceSelect.value = "Commercial & Domestic Rooftop Solar PV";
+    serviceSelect.value = "Rooftop Solar PV Installation";
   }
 
   const messageBox = document.getElementById('inqMessage');
@@ -583,13 +569,13 @@ function prefillInquiry(serviceName) {
   const serviceSelect = document.getElementById('inqService');
   if (serviceSelect) {
     if (serviceName.includes('UPS')) {
-      serviceSelect.value = "High-Reliability UPS & Battery Systems";
+      serviceSelect.value = "Industrial UPS System Installation";
     } else if (serviceName.includes('Solar')) {
-      serviceSelect.value = "Commercial & Domestic Rooftop Solar PV";
+      serviceSelect.value = "Rooftop Solar PV Installation";
     } else if (serviceName.includes('Battery')) {
-      serviceSelect.value = "Battery Bank Diagnostics & Renewal";
-    } else if (serviceName.includes('Breakdown') || serviceName.includes('AMC')) {
-      serviceSelect.value = "24/7 Power Plant Breakdown & AMC";
+      serviceSelect.value = "UPS Battery Bank Replacement";
+    } else if (serviceName.includes('Breakdown') || serviceName.includes('AMC') || serviceName.includes('Maintenance')) {
+      serviceSelect.value = "Routine Solar & UPS Maintenance (AMC)";
     }
   }
 
@@ -605,7 +591,7 @@ function prefillInquiry(serviceName) {
 }
 
 /* ========================================================
-   ENGINEERING DIAGNOSTIC TOOLS SUITE
+   ENGINEERING DIAGNOSTIC TOOLS
    ======================================================== */
 function switchToolTab(tabId) {
   const tabs = ['faults', 'runtime', 'layout', 'grid'];
@@ -622,7 +608,6 @@ function switchToolTab(tabId) {
   if (activeBtn) activeBtn.classList.add('active');
 }
 
-// 1. Fault Codes
 function initFaultCodes() {
   renderFaultCodes(FAULT_CODES_DB);
 }
@@ -632,21 +617,21 @@ function renderFaultCodes(list) {
   if (!container) return;
 
   if (list.length === 0) {
-    container.innerHTML = `<div style="grid-column: 1/-1; padding: 30px; text-align: center; color: #94a3b8;">No matching fault code found in knowledge base. Call Eng. H.K.S. Dahampriya at ${siteConfig.phone} for direct diagnostic assistance.</div>`;
+    container.innerHTML = `<div style="grid-column: 1/-1; padding: 30px; text-align: center; color: #94a3b8;">No matching fault code found. Call Eng. H.K.S. Dahampriya at ${escapeHtml(siteConfig.phone)} for direct diagnostic assistance.</div>`;
     return;
   }
 
   container.innerHTML = list.map(item => `
     <div class="fault-card">
       <div class="fault-head">
-        <span class="fault-code-badge">${item.code}</span>
+        <span class="fault-code-badge">${escapeHtml(item.code)}</span>
         <span class="fault-severity ${item.severity}">${item.severity}</span>
       </div>
-      <div class="fault-title">${item.title}</div>
-      <div class="fault-cause"><strong>Root Cause:</strong> ${item.cause}</div>
+      <div class="fault-title">${escapeHtml(item.title)}</div>
+      <div class="fault-cause"><strong>Root Cause:</strong> ${escapeHtml(item.cause)}</div>
       <div class="fault-action-box">
         <strong>Certified Engineering Protocol:</strong>
-        ${item.action}
+        ${escapeHtml(item.action)}
       </div>
     </div>
   `).join('');
@@ -671,7 +656,6 @@ function filterFaultCodes() {
   renderFaultCodes(filtered);
 }
 
-// 2. UPS Battery Runtime Calculator
 function calculateUpsRuntime() {
   const loadKw = parseFloat(document.getElementById('runtimeLoad')?.value || '5');
   const batteryAh = parseFloat(document.getElementById('runtimeAh')?.value || '100');
@@ -697,7 +681,6 @@ function calculateUpsRuntime() {
   setText('resCRate', `${cRate} C (${cRate < 0.5 ? 'Safe / High Longevity' : 'High Discharge'})`);
 }
 
-// 3. Solar Roof Layout Tool
 function calculateSolarLayout() {
   const length = parseFloat(document.getElementById('roofLength')?.value || '12');
   const width = parseFloat(document.getElementById('roofWidth')?.value || '8');
@@ -719,7 +702,6 @@ function calculateSolarLayout() {
   setText('resDailyYield', `~${dailyYield} kWh / day`);
 }
 
-// 4. CEB Grid Quality Simulator
 function simulateGridQuality() {
   const scenario = document.getElementById('gridScenario')?.value || 'normal';
 
@@ -819,7 +801,6 @@ function handleInquirySubmit(e) {
     console.warn("Storage error", err);
   }
 
-  // Update Success Box
   const form = document.getElementById('publicInquiryForm');
   if (form) form.style.display = 'none';
 
@@ -859,12 +840,13 @@ function updateInquiryCountBadge() {
 }
 
 /* ========================================================
-   FULL-FEATURED STAFF ADMIN CMS (ALL TABS)
+   ADMIN CMS
    ======================================================== */
 function openAdminModal() {
   const backdrop = document.getElementById('adminModalBackdrop');
   if (backdrop) {
     backdrop.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
     const isAuthed = sessionStorage.getItem('snt_admin_auth') === 'true';
     if (isAuthed) {
       showCmsView();
@@ -877,11 +859,14 @@ function openAdminModal() {
 function closeAdminModal() {
   const backdrop = document.getElementById('adminModalBackdrop');
   if (backdrop) backdrop.style.display = 'none';
+  document.body.style.overflow = '';
 }
 
 function showLoginView() {
-  document.getElementById('adminLoginState').style.display = 'block';
-  document.getElementById('adminCmsState').style.display = 'none';
+  const login = document.getElementById('adminLoginState');
+  const cms = document.getElementById('adminCmsState');
+  if (login) login.style.display = 'block';
+  if (cms) cms.style.display = 'none';
   const input = document.getElementById('adminPasswordInput');
   if (input) {
     input.value = '';
@@ -892,8 +877,10 @@ function showLoginView() {
 }
 
 function showCmsView() {
-  document.getElementById('adminLoginState').style.display = 'none';
-  document.getElementById('adminCmsState').style.display = 'block';
+  const login = document.getElementById('adminLoginState');
+  const cms = document.getElementById('adminCmsState');
+  if (login) login.style.display = 'none';
+  if (cms) cms.style.display = 'block';
   renderInquiriesInCms();
   syncCmsInputs();
 }
@@ -937,7 +924,6 @@ function switchCmsTab(tabId) {
   }
 }
 
-// 1. Save Company & Socials
 function saveCompanySettings(e) {
   e.preventDefault();
   siteConfig.name = document.getElementById('editCompanyName').value.trim();
@@ -957,7 +943,6 @@ function saveCompanySettings(e) {
   showSaveToast("Company profile, telephone, email, and social media links updated successfully!");
 }
 
-// 2. Save Hero Settings
 function saveHeroSettings(e) {
   e.preventDefault();
   siteConfig.hero = siteConfig.hero || {};
@@ -978,7 +963,6 @@ function saveHeroSettings(e) {
   showSaveToast("Hero section and guarantee credentials updated!");
 }
 
-// 3. Save Core Services
 function saveServicesSettings(e) {
   e.preventDefault();
   siteConfig.services = siteConfig.services || [];
@@ -997,7 +981,6 @@ function saveServicesSettings(e) {
   showSaveToast("All 4 Core Services successfully updated!");
 }
 
-// 4. Save Solar Rates
 function saveSolarRates(e) {
   e.preventDefault();
   siteConfig.solarRates.domestic = parseFloat(document.getElementById('editDomesticRate').value);
@@ -1010,7 +993,6 @@ function saveSolarRates(e) {
   showSaveToast("Solar tariff rates and calculation constants updated!");
 }
 
-// 5. Save About SNT
 function saveAboutSettings(e) {
   e.preventDefault();
   siteConfig.about = siteConfig.about || {};
@@ -1026,12 +1008,51 @@ function saveAboutSettings(e) {
   showSaveToast("About SNT & Leadership biography updated!");
 }
 
-// 6. Inquiries Manager
-function setInquiryFilter(status) {
-  inquiryFilterStatus = status;
-  document.querySelectorAll('.inq-filter-btn').forEach(btn => btn.classList.remove('active'));
-  if (event && event.target) event.target.classList.add('active');
+function toggleManualInquiryForm() {
+  const el = document.getElementById('cmsManualInquiryBox');
+  if (el) {
+    el.style.display = el.style.display === 'block' ? 'none' : 'block';
+  }
+}
+
+function handleManualInquirySubmit(e) {
+  e.preventDefault();
+  const name = document.getElementById('manualInqName')?.value.trim();
+  const phone = document.getElementById('manualInqPhone')?.value.trim();
+  const email = document.getElementById('manualInqEmail')?.value.trim() || 'N/A';
+  const service = document.getElementById('manualInqService')?.value;
+  const location = document.getElementById('manualInqLocation')?.value.trim() || '';
+  const notes = document.getElementById('manualInqNotes')?.value.trim() || 'Logged manually by staff.';
+
+  if (!name || !phone) {
+    alert("Name and phone are required.");
+    return;
+  }
+
+  const combinedMessage = location ? `Location: ${location}\n${notes}` : notes;
+
+  const newInq = {
+    id: 'INQ-' + Date.now().toString().slice(-5),
+    date: new Date().toLocaleString([], { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+    name,
+    phone,
+    email,
+    service,
+    message: combinedMessage,
+    status: 'New'
+  };
+
+  try {
+    const list = JSON.parse(localStorage.getItem('snt_inquiries') || '[]');
+    list.unshift(newInq);
+    localStorage.setItem('snt_inquiries', JSON.stringify(list));
+  } catch (err) {}
+
+  e.target.reset();
+  toggleManualInquiryForm();
   renderInquiriesInCms();
+  updateInquiryCountBadge();
+  showSaveToast("New customer inquiry successfully recorded!");
 }
 
 function handleInquirySearch(val) {
@@ -1039,11 +1060,25 @@ function handleInquirySearch(val) {
   renderInquiriesInCms();
 }
 
+function filterInquiries(status) {
+  inquiryFilterStatus = status;
+  ['All', 'New', 'Contacted', 'Closed'].forEach(s => {
+    const btn = document.getElementById('filterBtn' + s);
+    if (btn) btn.classList.remove('active');
+  });
+  const active = document.getElementById('filterBtn' + (status === 'all' ? 'All' : status));
+  if (active) active.classList.add('active');
+  renderInquiriesInCms();
+}
+
 function renderInquiriesInCms() {
   const container = document.getElementById('cmsInquiriesList');
   if (!container) return;
 
-  const list = JSON.parse(localStorage.getItem('snt_inquiries') || '[]');
+  let list = [];
+  try {
+    list = JSON.parse(localStorage.getItem('snt_inquiries') || '[]');
+  } catch (e) { list = []; }
 
   const filtered = list.filter(item => {
     const matchesStatus = inquiryFilterStatus === 'all' || (item.status || 'New') === inquiryFilterStatus;
@@ -1073,10 +1108,10 @@ function renderInquiriesInCms() {
             <span class="rec-name">${escapeHtml(item.name)}</span>
             <span class="inq-status-badge ${statusClass}">${status}</span>
           </div>
-          <span class="rec-date">${item.date}</span>
+          <span class="rec-date">${escapeHtml(item.date)}</span>
         </div>
         <div class="rec-details">
-          <div><strong>Phone:</strong> <a href="tel:${item.phone}" style="color: #38bdf8;">${escapeHtml(item.phone)}</a> | <strong>Email:</strong> ${escapeHtml(item.email || 'N/A')}</div>
+          <div><strong>Phone:</strong> <a href="tel:${escapeHtml(item.phone)}" style="color: #38bdf8;">${escapeHtml(item.phone)}</a> | <strong>Email:</strong> ${escapeHtml(item.email || 'N/A')}</div>
           <div><strong>Requested Service:</strong> ${escapeHtml(item.service)}</div>
           <div class="rec-msg-box"><strong>Message:</strong> ${escapeHtml(item.message)}</div>
         </div>
@@ -1086,8 +1121,8 @@ function renderInquiriesInCms() {
             <option value="Contacted" ${status === 'Contacted' ? 'selected' : ''}>Status: Contacted</option>
             <option value="Closed" ${status === 'Closed' ? 'selected' : ''}>Status: Closed</option>
           </select>
-          <a href="https://wa.me/${cleanNum}?text=${waText}" target="_blank" class="btn-outline-small" style="color: #34d399;">WhatsApp Client</a>
-          <a href="tel:${item.phone}" class="btn-outline-small">Call Client</a>
+          <a href="https://wa.me/${cleanNum}?text=${waText}" target="_blank" rel="noopener noreferrer" class="btn-outline-small" style="color: #34d399;">WhatsApp Client</a>
+          <a href="tel:${escapeHtml(item.phone)}" class="btn-outline-small">Call Client</a>
           <button class="btn-outline-small" onclick="deleteInquiry('${item.id}')" style="color: #f87171;">Delete</button>
         </div>
       </div>
@@ -1096,77 +1131,40 @@ function renderInquiriesInCms() {
 }
 
 function updateInquiryStatus(id, newStatus) {
-  let list = JSON.parse(localStorage.getItem('snt_inquiries') || '[]');
-  list = list.map(item => item.id === id ? { ...item, status: newStatus } : item);
-  localStorage.setItem('snt_inquiries', JSON.stringify(list));
-  renderInquiriesInCms();
+  try {
+    let list = JSON.parse(localStorage.getItem('snt_inquiries') || '[]');
+    list = list.map(item => item.id === id ? { ...item, status: newStatus } : item);
+    localStorage.setItem('snt_inquiries', JSON.stringify(list));
+    renderInquiriesInCms();
+  } catch (e) {}
 }
 
 function deleteInquiry(id) {
   if (!confirm("Are you sure you want to delete this inquiry record?")) return;
-  let list = JSON.parse(localStorage.getItem('snt_inquiries') || '[]');
-  list = list.filter(item => item.id !== id);
-  localStorage.setItem('snt_inquiries', JSON.stringify(list));
-  renderInquiriesInCms();
-  updateInquiryCountBadge();
+  try {
+    let list = JSON.parse(localStorage.getItem('snt_inquiries') || '[]');
+    list = list.filter(item => item.id !== id);
+    localStorage.setItem('snt_inquiries', JSON.stringify(list));
+    renderInquiriesInCms();
+    updateInquiryCountBadge();
+  } catch (e) {}
 }
 
 function clearAllInquiries() {
   if (!confirm("Clear all received customer inquiries history?")) return;
-  localStorage.setItem('snt_inquiries', JSON.stringify([]));
-  renderInquiriesInCms();
-  updateInquiryCountBadge();
+  try {
+    localStorage.setItem('snt_inquiries', JSON.stringify([]));
+    renderInquiriesInCms();
+    updateInquiryCountBadge();
+  } catch (e) {}
 }
 
-function toggleNewInquiryModal() {
-  const el = document.getElementById('cmsManualInquiryBox');
-  if (el) {
-    el.style.display = el.style.display === 'none' ? 'block' : 'none';
-  }
-}
-
-function submitManualInquiry(e) {
-  e.preventDefault();
-  const name = document.getElementById('manualInqName')?.value.trim();
-  const phone = document.getElementById('manualInqPhone')?.value.trim();
-  const email = document.getElementById('manualInqEmail')?.value.trim() || 'N/A';
-  const service = document.getElementById('manualInqService')?.value;
-  const message = document.getElementById('manualInqMessage')?.value.trim() || 'Logged manually by staff.';
-
-  if (!name || !phone) {
-    alert("Name and phone are required.");
-    return;
-  }
-
-  const newInq = {
-    id: 'INQ-' + Date.now().toString().slice(-5),
-    date: new Date().toLocaleString([], { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-    name,
-    phone,
-    email,
-    service,
-    message,
-    status: 'New'
-  };
-
-  const list = JSON.parse(localStorage.getItem('snt_inquiries') || '[]');
-  list.unshift(newInq);
-  localStorage.setItem('snt_inquiries', JSON.stringify(list));
-
-  document.getElementById('manualInquiryForm')?.reset();
-  toggleNewInquiryModal();
-  renderInquiriesInCms();
-  updateInquiryCountBadge();
-  showSaveToast("New customer inquiry successfully recorded!");
-}
-
-// 7. Security & Passcode Change
-function handleChangePasscode(e) {
+function handlePasscodeChange(e) {
   e.preventDefault();
   const current = document.getElementById('editCurrentPasscode')?.value.trim();
   const newPass = document.getElementById('editNewPasscode')?.value.trim();
   const confirmPass = document.getElementById('editConfirmPasscode')?.value.trim();
-  const errBox = document.getElementById('passcodeErrorMsg');
+  const errBox = document.getElementById('passcodeChangeError');
   const validCurrent = localStorage.getItem('snt_admin_password') || 'admin123';
 
   if (current !== validCurrent) {
@@ -1177,9 +1175,9 @@ function handleChangePasscode(e) {
     return;
   }
 
-  if (newPass.length < 6) {
+  if (newPass.length < 4) {
     if (errBox) {
-      errBox.textContent = "New passcode must be at least 6 characters.";
+      errBox.textContent = "New passcode must be at least 4 characters.";
       errBox.style.display = 'block';
     }
     return;
@@ -1193,17 +1191,21 @@ function handleChangePasscode(e) {
     return;
   }
 
-  localStorage.setItem('snt_admin_password', newPass);
+  try {
+    localStorage.setItem('snt_admin_password', newPass);
+  } catch (e) {}
+
   if (errBox) errBox.style.display = 'none';
-  document.getElementById('passcodeChangeForm')?.reset();
+  e.target.reset();
   showSaveToast("Admin security passcode changed successfully!");
 }
 
-// Export / Backup JSON Data
 function exportSiteDataBackup() {
   const backup = {
     siteConfig,
-    inquiries: JSON.parse(localStorage.getItem('snt_inquiries') || '[]'),
+    inquiries: (() => {
+      try { return JSON.parse(localStorage.getItem('snt_inquiries') || '[]'); } catch (e) { return []; }
+    })(),
     exportedAt: new Date().toISOString()
   };
 
@@ -1217,7 +1219,6 @@ function exportSiteDataBackup() {
   showSaveToast("Site data backup JSON exported successfully!");
 }
 
-// Import / Restore JSON Data
 function importSiteDataBackup(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -1244,14 +1245,14 @@ function importSiteDataBackup(e) {
   reader.readAsText(file);
 }
 
-// Factory Reset
 function resetToFactoryDefaults() {
-  if (!confirm("Are you sure you want to reset all content and rates back to official defaults? Any custom modifications will be reverted.")) {
+  if (!confirm("Are you sure you want to reset all content and rates back to official defaults?")) {
     return;
   }
   siteConfig = JSON.parse(JSON.stringify(DEFAULT_COMPANY_CONFIG));
   saveConfigToStorage();
   syncCmsInputs();
+  updateCalculatorResults();
   showSaveToast("Website reset to official engineering defaults!");
 }
 
@@ -1271,7 +1272,7 @@ function showSaveToast(msg) {
 }
 
 /* ========================================================
-   FLOATING SNT AI ASSISTANT WIDGET
+   FLOATING AI ASSISTANT
    ======================================================== */
 function initAiAssistant() {
   const container = document.getElementById('chatMessagesContainer');
@@ -1349,13 +1350,13 @@ function getCurrentTimeString() {
 }
 
 function escapeHtml(str) {
-  return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return (str || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function parseSimpleMarkdown(text) {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+  return escapeHtml(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/\n\n/g, '<br><br>')
     .replace(/\n- /g, '<br>&bull; ')
     .replace(/\n/g, '<br>');
@@ -1364,36 +1365,29 @@ function parseSimpleMarkdown(text) {
 function generateAiEngineeringResponse(query) {
   const q = query.toLowerCase();
 
-  // Contact / Lead Engineer / Address
   if (q.includes('engineer') || q.includes('dahampriya') || q.includes('contact') || q.includes('phone') || q.includes('address') || q.includes('kelaniya') || q.includes('call') || q.includes('email') || q.includes('location')) {
     return `**Supervising Lead Engineer:**\n${siteConfig.leadEngineer} (${siteConfig.engineerCreds}).\n\n**Operations Headquarters:**\n${siteConfig.address}.\n\n**Direct Telephone Hotline:**\n📞 **${siteConfig.phone}**\n\n**Official Email:**\n✉️ ${siteConfig.email}\n\n**WhatsApp Support:**\nYou can reach out directly via WhatsApp at ${siteConfig.phone} for rapid response.`;
   }
 
-  // Solar Sizing & CEB
   if (q.includes('solar') || q.includes('bill') || q.includes('ceb') || q.includes('leco') || q.includes('panel') || q.includes('roi') || q.includes('kw') || q.includes('capacity')) {
     return `**Solar Power Sizing Principles:**\n\nUnder Sri Lanka solar irradiance (average 4.4 Peak Sun Hours/day in Kelaniya and Western Province):\n- **Rs. 25,000 bill:** Needs approx **4 - 5 kWp** rooftop solar system.\n- **Rs. 45,000 bill:** Needs approx **8 - 10 kWp** rooftop solar system.\n- **Rs. 100,000+ bill:** Needs **18 - 25 kWp** commercial rooftop solar system.\n\nWe provide complete CEB / LECO Net-Metering, Net-Accounting, and Net-Plus approvals, Tier-1 Bifacial panels with 25-Year warranties, and anodized aluminium wind-load mounting.\n\n👉 *Use our interactive Solar ROI Calculator on the page to customize your exact bill savings.*`;
   }
 
-  // UPS Systems & Battery
   if (q.includes('ups') || q.includes('battery') || q.includes('backup') || q.includes('runtime') || q.includes('kva') || q.includes('double-conversion') || q.includes('amc')) {
     return `**Industrial UPS & Energy Storage Systems:**\n\n- **Zero Transfer Time (0ms):** True Online Double-Conversion (VFI-SS-111 standard) eliminates micro-outages and protects sensitive medical and datacenter equipment.\n- **Capacities:** 1 kVA to 500 kVA (Single-phase and 3-Phase with N+1 modular redundancy).\n- **Battery Chemistries:** High-discharge 12V AGM VRLA and 6,000+ cycle Lithium LiFePO4 batteries with active smart BMS.\n\nWe also offer comprehensive **Annual Maintenance Contracts (AMC)** with guaranteed on-site arrival within 2-4 hours in the Western Province.`;
   }
 
-  // Fault Codes
   if (q.includes('fault') || q.includes('code') || q.includes('f09') || q.includes('e04') || q.includes('iso') || q.includes('error') || q.includes('alarm')) {
     return `**Inverter / UPS Diagnostics:**\n\n- **F09 / E04:** DC Bus overvoltage or soft-start charge failure. Check surge arrestors and DC bus capacitor health.\n- **F14 / E18:** CEB grid voltage or frequency out of statutory range (anti-islanding).\n- **ISO Fault:** PV string insulation resistance degraded below 1 MΩ, usually due to moisture or damaged MC4 connectors.\n\n👉 *Visit our 'Engineering Tools' section to browse all 50+ calibrated fault codes.*`;
   }
 
-  // Engineering Tools
   if (q.includes('tool') || q.includes('plugin') || q.includes('calculator') || q.includes('diagnostic')) {
     return `**SNT Engineering Tools Suite:**\n\n1. **Inverter Fault Code Decoder:** Search 50+ certified error codes with root causes and corrective protocols.\n2. **UPS Battery Runtime Simulator:** Calculate backup minutes based on load (kW), battery Ah, and DC bus voltage.\n3. **Solar Rooftop Panel Layout Tool:** Calculate maximum panel fit and daily generation yield in Kelaniya.\n4. **CEB Grid Quality Simulator:** Monitor harmonic THD % and IEEE 519 compliance.\n\nAll tools are available under the 'Engineering Tools' tab!`;
   }
 
-  // Sinhala / Local Query Fallback
   if (q.includes('kohomada') || q.includes('karanna') || q.includes('mila') || q.includes('visthara') || q.includes('gana')) {
     return `ආයුබෝවන්! SNT Projects (Pvt) Ltd වෙතින් ඔබට අවශ්‍ය UPS පද්ධති, Solar PV පද්ධති, හෝ බැටරි සේවා පිළිබඳව **${siteConfig.leadEngineer}** මහතා සමඟ සෘජුවම සාකච්ඡා කළ හැක.\n\n- **ලිපිනය:** ${siteConfig.address}\n- **දුරකථන අංකය:** ${siteConfig.phone}\n- **WhatsApp:** ${siteConfig.phone}\n\nකරුණාකර පිටුවේ ඇති Contact Form එක පුරවා හෝ කෙලින්ම WhatsApp පණිවිඩයක් එවන්න.`;
   }
 
-  // Default Fallback
   return `Thank you for your inquiry. SNT Projects (Pvt) Ltd is supervised directly by **${siteConfig.leadEngineer}** (${siteConfig.engineerCreds}).\n\nWe specialize in:\n1. Industrial Online Double-Conversion UPS (1-500 kVA)\n2. Commercial & Domestic Rooftop Solar PV Systems\n3. Battery Bank Replacement (AGM VRLA & LiFePO4)\n4. Annual Maintenance Contracts (AMC) with 24/7 SLA\n\nWould you like to calculate your solar savings, use our UPS runtime simulator, or book an on-site visit in Kelaniya or Western Province? Call us at **${siteConfig.phone}**!`;
 }
